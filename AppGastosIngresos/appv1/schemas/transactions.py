@@ -18,7 +18,12 @@ class CreateTransaction(BaseTransaction):
     pass
 
 class UpdateTransaction(BaseTransaction):
-    transactions_id: int    
+    transactions_id: int  
+    
+class ReadTransaction(BaseTransaction):
+    transactions_id: int
+    class Config:
+        orm_mode = True  
 
     
     

@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from core.token import get_current_user
 from db.session import get_session
-from appv1.schemas.transactions import  TransactionType, BaseTransaction, UpdateTransaction, CreateTransaction
+from appv1.schemas.transactions import  ReadTransaction, TransactionType, BaseTransaction, UpdateTransaction, CreateTransaction
 from appv1.schemas.users import UserRead
 from appv1.models.Transactions import Transactions
 from appv1.crud.transactions import create_new_transaction, update_transaction_new
@@ -53,7 +53,7 @@ def get_all_transactions(db: Session = Depends(get_session), current_user: UserR
         return db.query(Transactions).filter(Transactions.user_id == current_user.user_id).all()
     raise HTTPException(status_code=401, detail="Token inválido")
 
-@router.get("/get-transaction/{transaction_id}", response_model=BaseTransaction)
+@router.get("/get-transaction/{transaction_id}", response_model=ReadTransaction)
 def get_transaction(transaction_id: int, db: Session = Depends(get_session), current_user: UserRead = Depends(get_current_user)):
     # Obtener la transacción por su ID
     transaction = db.query(Transactions).filter(Transactions.transactions_id == transaction_id).first()
@@ -68,7 +68,17 @@ def get_transaction(transaction_id: int, db: Session = Depends(get_session), cur
     raise HTTPException(status_code=403, detail="No tienes permiso para acceder a esta transacción")
 
 
-
+@router.get("get-transaction-all/{user_id}", response_model=List[ReadTransaction])
+def get_transaction_all(user_id: str, db: Session = Depends(get_session), current_user: UserRead = Depends(get_current_user)):
+    if current_user.user_role == "admin" or (current_user.user_role == "user" and user_id == current_user.user_id):
+        return db.query(Transactions).filter(Transactions.user_id == user_id).all()
+    
+    if current_user.user_role == "user" and user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para acceder a esta transacción")
+    
+    
+    
+    raise HTTPException(status_code=401, detail="Token inválido")
 
 
 

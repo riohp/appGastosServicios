@@ -38,6 +38,12 @@ def create_new_transaction(new_transaction: CreateTransaction, db: Session):
 
 def update_transaction_new(transaction: UpdateTransaction, db: Session, current_user: UserRead):
     db_transaction = get_transaction_by_id(transaction.transactions_id, db)
+    
+    if transaction.amount < 0:
+        raise HTTPException(status_code=400, detail="El monto no puede ser negativo")
+    elif transaction.amount == 0:
+        raise HTTPException(status_code=400, detail="El monto no puede ser cero")
+    
     if db_transaction is None:
         raise HTTPException(status_code=404, detail="Transacción no encontrada")
 
@@ -68,7 +74,7 @@ def update_transaction_new(transaction: UpdateTransaction, db: Session, current_
         raise HTTPException(status_code=500, detail=f"Error al actualizar transacción: {str(e)}")
 
 
-        
+
         
 def get_transaction_by_id(transaction_id: int, db: Session):
     transaction = db.query(Transactions).filter(Transactions.transactions_id == transaction_id).first()
